@@ -1,0 +1,15 @@
+{
+	'email': 'arkadyivanov@pussport.com'
+	'password': 'TGzyp0h48J'
+	'name': 'Arkady'
+	'patronymic': 'Vitalievich'
+	'surName': 'Ivanov'
+	'birth: '28.04.1994'
+	'randomWords': 'Array'
+	'city': 'Moscow'
+	'street': '3rd Lazienki'
+	'house': '86'
+	'flat': '85'
+	'index': '119619'
+	'phone': '+7 495 7253708'
+}
