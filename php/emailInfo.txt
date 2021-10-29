@@ -1,0 +1,17 @@
+
+{
+	'email': 'stepanmaltsev@pussport.com'
+	'password': 'L4ZzKjGBQe'
+},
+{
+	'email': 'stepanmaltsev@pussport.com'
+	'password': 'L4ZzKjGBQe'
+},
+{
+	'email': 'stepanmaltsev@pussport.com'
+	'password': 'L4ZzKjGBQe'
+},
+{
+	'email': 'stepanmaltsev@pussport.com'
+	'password': 'L4ZzKjGBQe'
+},

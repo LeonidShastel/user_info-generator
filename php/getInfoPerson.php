@@ -3,8 +3,7 @@ require_once('vendor/autoload.php');
 
 use \Dejurin\GoogleTranslateForFree;
 
-header('Content-Type: text/html; charset =utf-8');
-header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Methods: GET');
 header('Access-Control-Max-Age: 1000');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Access-Control-Allow-Origin: *');
@@ -98,12 +97,11 @@ function getAddress()
 
 function getWords()
 {
-    $words = file_get_contents("http://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=true&minCorpusCount=0&minLength=5&maxLength=15&limit=3&api_key=a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5");
-    $words = json_decode($words);
+    $words = json_decode(file_get_contents("words.txt"));
     $array = array();
 
-    foreach ($words as $obj) {
-        array_push($array, $obj->word);
+    for($i = 0; $i<3; $i++){
+        array_push($array, $words[array_rand($words)]);
     }
 
     return json_encode($array);
