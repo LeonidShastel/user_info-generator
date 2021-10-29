@@ -9,17 +9,20 @@ import {
     Typography,
     Stack,
 } from "@mui/material";
-import React,{useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {CopyToClipboard} from "react-copy-to-clipboard/lib/Component";
 import {db} from './firebase';
 import {collection, getDoc, getDocs, addDoc} from "firebase/firestore";
+import Mailjs from "@cemalgnlts/mailjs";
+
+const mailjs = new Mailjs();
 
 function App() {
 
     const [loaded, setLoaded] = useState(false);
     const [timerRequestMail, setTimerRequestMail] = useState(0);
-    const [code,setCode] = useState('');
+    const [code, setCode] = useState('');
 
     let interval;
     const phoneCodes = [910, 915, 916, 917, 919, 985, 986, 903, 905, 906, 909, 962, 963, 964, 965, 966, 967, 968, 969, 980, 983, 986, 925, 926, 929, 936, 999, 901, 958, 977, 999, 995, 996, 999]
@@ -50,76 +53,82 @@ function App() {
     }
 
     const saveFiles = async () => {
-        const firebaseCollection = collection(db,"data");
-        await addDoc(firebaseCollection,{email: person.email, password: person.password})
-        await axios.post("/php/saveFiles.php",{
+        const firebaseCollection = collection(db, "data");
+        await addDoc(firebaseCollection, {email: person.email, password: person.password})
+        await axios.post("/php/saveFiles.php", {
             "birth": person.birth,
-            "city":person.city,
-            "email":person.email,
-            "index":person.index,
-            "name":person.name,
-            "password":person.password,
-            "phoneCode":person.phoneCode,
-            "phone":person.phone,
-            "randomWords":person.randomWords,
-            "address":person.address,
-            "surName":person.surName,
+            "city": person.city,
+            "email": person.email,
+            "index": person.index,
+            "name": person.name,
+            "password": person.password,
+            "phoneCode": person.phoneCode,
+            "phone": person.phone,
+            "randomWords": person.randomWords,
+            "address": person.address,
+            "surName": person.surName,
         })
     }
 
     const createIntervalRequestMail = (email) => {
         setTimerRequestMail(0);
         interval = setInterval(() => {
-            axios.get(`/php/email.php?option=messages&mail=${email}`).then(function (response) {
-                if(Object.keys(response.data).length>0){
-                    clearInterval(interval);
-                    interval=null;
-                    axios.get(`/php/email.php?option=message&mail=${email}&id=${response.data[email][0].messageId}`).then(function (response) {
+            mailjs.getMessages()
+                .then(response => {
+                    if (Object.keys(response.data).length > 0) {
+                        clearInterval(interval);
+                        interval = null;
                         console.log(response)
-                        const text = response.data.txt;
-                        const index = text.search(/\d/);
-                        let code = '';
-                        for (let i = index; i < text.length; i++)
-                            if (Number.isInteger(+text[i])){
-                                code += text[i]
-                            }
-                            else {
-                                break;
-                            }
-                        setCode(code);
-                    }).catch(function (error) {
-                        console.error(error);
-                    });
-                }
-            })
-                .catch(err => {
-                    console.error(err);
-                });
+                        mailjs.getMessage(response.data[0].id)
+                            .then(response => {
+                                console.log(response)
+                                const text = response.data.text;
+                                const index = text.search(/\d/);
+                                let code = '';
+                                for (let i = index; i < text.length; i++)
+                                    if (Number.isInteger(+text[i])) {
+                                        code += text[i]
+                                    } else {
+                                        break;
+                                    }
+                                setCode(code);
+                            }).catch(function (error) {
+                            console.error(error);
+                        });
+                    }
+                })
             setTimerRequestMail(prevState => +prevState + 20000);
             if (timerRequestMail >= 3600000) {
                 clearInterval(interval);
-                interval=null;
+                interval = null;
             }
         }, 20000)
     }
 
     const generateMAil = async (personData) => {
         setCode('');
-
-        axios.get('/php/email.php?option=create').then(function (response) {
-            personData = {...personData, email: response.data[1]};
-            setPerson({...personData, email: response.data[1]});
-            setLoaded(false);
-        }).catch(function (error) {
-            console.error(error);
-        });
+        mailjs.getDomains()
+            .then(response => {
+                console.log(response, response.data[0].domain)
+                mailjs.register(personData.name + personData.surName + Math.floor(Math.random() * 10) + "@" + response.data[0].domain, personData.password)
+                    .then(mail => {
+                        personData = {...personData, email: mail.data.address};
+                        setPerson({...personData, email: mail.data.address});
+                        setLoaded(false);
+                        return personData;
+                    })
+                    .then((person) => {
+                        mailjs.login(person.email, person.password)
+                            .then(console.log)
+                    })
+            });
     }
 
     const generateInfo = async () => {
         setLoaded(true);
         let personData = {};
 
-        return await axios.get("/php/getInfoPerson.php")
+        return await axios.get("https://heloptop.ru/php/getInfoPerson.php")
             .then(response => {
                 const address = JSON.parse(response.data.address);
                 const name = response.data.name.split(' ');
@@ -154,7 +163,7 @@ function App() {
             }
             retVal += char;
         }
-        return retVal+1+'a'+'J';
+        return retVal + 1 + 'a' + 'J';
     }
 
     return (
@@ -163,7 +172,8 @@ function App() {
                 <Container maxWidth={"sm"} sx={{display: "flex", flexDirection: "column", padding: 2}}>
                     <Button variant={"contained"} onClick={generateInfo} sx={{marginBottom: 1}}>Сгенерировать
                         данные</Button>
-                    <Button variant={"contained"} onClick={()=>createIntervalRequestMail(person.email)} disabled={person.email === ''} sx={{marginBottom: 1}}>Запуск поиска сообщений</Button>
+                    <Button variant={"contained"} onClick={() => createIntervalRequestMail(person.email)}
+                            disabled={person.email === ''} sx={{marginBottom: 1}}>Запуск поиска сообщений</Button>
                     <Button variant={"contained"} onClick={saveFiles} disabled={person.email === ''}>Сохранить данные на
                         сервере</Button>
                     <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
@@ -260,8 +270,9 @@ function App() {
                 <Stack spacing={1}>
                     {code.length > 0 ?
                         <>
-                            <Paper variant="outlined" square sx={{padding: 1}} sx={{display: 'flex', flexDirection:"column",alignItems:"center"}}>
-                                <Typography>Код: {code}</Typography>
+                            <Paper variant="outlined" square
+                                   sx={{padding: 1, display: 'flex', flexDirection: "column", alignItems: "center"}}>
+                                <Typography sx={{marginBottom: 1}}>Код: {code}</Typography>
                                 <CopyToClipboard text={code}>
                                     <Button variant={"outlined"}>Скопировать код</Button>
                                 </CopyToClipboard>
